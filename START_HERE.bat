@@ -79,7 +79,9 @@ call :show_text actionChecksetup
 echo.
 call :read_project_path
 if not defined PROJECT_PATH goto wait_return
+pushd "%PROJECT_PATH%" >nul
 call "%CLI_CMD%" check-setup "%PROJECT_PATH%"
+popd >nul
 goto wait_return
 
 :status

@@ -88,6 +88,15 @@ def test_find_project_instance_prefers_closest(tmp_path, monkeypatch):
     assert _find_project_instance() == "http://127.0.0.1:9999"
 
 
+def test_find_project_instance_from_explicit_start(tmp_path):
+    bridge_dir = tmp_path / ".soft-ue-bridge"
+    bridge_dir.mkdir()
+    (bridge_dir / "instance.json").write_text(json.dumps({"port": 6543}))
+    nested = tmp_path / "Saved" / "Logs"
+    nested.mkdir(parents=True)
+    assert _find_project_instance(nested) == "http://127.0.0.1:6543"
+
+
 # -- get_server_url ------------------------------------------------------------
 
 
@@ -112,7 +121,7 @@ def test_get_server_url_invalid_port_falls_through(monkeypatch, tmp_path):
     monkeypatch.delenv("SOFT_UE_BRIDGE_URL", raising=False)
     monkeypatch.setenv("SOFT_UE_BRIDGE_PORT", "not-a-number")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("soft_ue_cli.discovery._find_project_instance", lambda: None)
+    monkeypatch.setattr("soft_ue_cli.discovery._find_project_instance", lambda start=None: None)
     assert get_server_url() == "http://127.0.0.1:8080"
 
 
@@ -126,11 +135,20 @@ def test_get_server_url_instance_file(monkeypatch, tmp_path):
     assert get_server_url() == "http://127.0.0.1:8765"
 
 
+def test_get_server_url_instance_file_from_explicit_start(tmp_path):
+    bridge_dir = tmp_path / ".soft-ue-bridge"
+    bridge_dir.mkdir()
+    (bridge_dir / "instance.json").write_text(json.dumps({"port": 8765}))
+    nested = tmp_path / "Intermediate"
+    nested.mkdir()
+    assert get_server_url(nested) == "http://127.0.0.1:8765"
+
+
 def test_get_server_url_default_fallback(monkeypatch, tmp_path):
     monkeypatch.delenv("SOFT_UE_BRIDGE_URL", raising=False)
     monkeypatch.delenv("SOFT_UE_BRIDGE_PORT", raising=False)
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("soft_ue_cli.discovery._find_project_instance", lambda: None)
+    monkeypatch.setattr("soft_ue_cli.discovery._find_project_instance", lambda start=None: None)
     assert get_server_url() == "http://127.0.0.1:8080"
 
 

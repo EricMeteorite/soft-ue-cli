@@ -6,6 +6,7 @@ import itertools
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -15,12 +16,12 @@ from .discovery import get_server_url
 _id_counter = itertools.count(1)
 
 
-def call_tool(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+def call_tool(tool_name: str, arguments: dict[str, Any], *, search_from: Path | None = None) -> dict[str, Any]:
     """Call a tool on the SoftUEBridge server and return the parsed result.
 
     Raises SystemExit(1) on connection errors or tool errors.
     """
-    url = get_server_url()
+    url = get_server_url(search_from)
     endpoint = f"{url}/bridge"
     timeout = float(os.environ.get("SOFT_UE_BRIDGE_TIMEOUT", "30"))
 
@@ -84,9 +85,9 @@ def call_tool(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def health_check() -> dict[str, Any]:
+def health_check(search_from: Path | None = None) -> dict[str, Any]:
     """GET /bridge health check."""
-    url = get_server_url()
+    url = get_server_url(search_from)
     try:
         response = httpx.get(f"{url}/bridge", timeout=5.0)
         response.raise_for_status()

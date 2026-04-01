@@ -18,9 +18,9 @@ def _load_instance_file(path: Path) -> str | None:
         return None
 
 
-def _find_project_instance() -> str | None:
-    """Walk up from cwd looking for .soft-ue-bridge/instance.json (project-local)."""
-    current = Path.cwd()
+def _find_project_instance(start: Path | None = None) -> str | None:
+    """Walk up from a directory looking for .soft-ue-bridge/instance.json (project-local)."""
+    current = start.resolve() if start is not None else Path.cwd()
     for directory in [current, *current.parents]:
         candidate = directory / ".soft-ue-bridge" / "instance.json"
         if candidate.exists():
@@ -28,13 +28,13 @@ def _find_project_instance() -> str | None:
     return None
 
 
-def get_server_url() -> str:
+def get_server_url(start: Path | None = None) -> str:
     """Return the base URL of the running SoftUEBridge server.
 
     Resolution order:
     1. SOFT_UE_BRIDGE_URL env var (full URL)
     2. SOFT_UE_BRIDGE_PORT env var (port only)
-    3. .soft-ue-bridge/instance.json in cwd or any parent (project-local, written by plugin)
+    3. .soft-ue-bridge/instance.json in start or any parent (project-local, written by plugin)
     4. Default: http://127.0.0.1:8080
     """
     if url := os.environ.get("SOFT_UE_BRIDGE_URL"):
@@ -46,7 +46,7 @@ def get_server_url() -> str:
         except ValueError:
             pass
 
-    if url := _find_project_instance():
+    if url := _find_project_instance(start):
         return url
 
     return "http://127.0.0.1:8080"

@@ -1035,9 +1035,9 @@ def cmd_check_setup(args: argparse.Namespace) -> None:
             issues.append("could not read .uproject")
 
     # 3. Bridge server
-    info = health_check()
+    info = health_check(project_path)
     if "error" in info:
-        url = get_server_url()
+        url = get_server_url(project_path)
         print(f"{fail} Bridge server unreachable at {url}: {info['error']}")
         issues.append("bridge server unreachable")
     else:

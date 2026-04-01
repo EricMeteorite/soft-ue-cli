@@ -44,16 +44,16 @@ If you're running manually (not via an LLM), follow the printed instructions you
 
 ### 3. Rebuild and launch Unreal Engine
 
-After regenerating project files and rebuilding, launch the editor. Look for this log line to confirm the bridge is running:
+After regenerating project files and rebuilding, launch the editor. Look for a `LogSoftUEBridge` line confirming the bridge is listening, for example:
 
 ```
-LogSoftUEBridge: Bridge server started on port 8080
+LogSoftUEBridge: Bridge server started on http://127.0.0.1:8080/bridge
 ```
 
-### 5. Verify the connection
+### 4. Verify the connection
 
 ```bash
-soft-ue-cli check-setup
+soft-ue-cli check-setup /path/to/YourProject
 ```
 
 You should see all checks pass:
@@ -339,7 +339,7 @@ The CLI finds the bridge server using this priority:
 1. `--server` command-line flag
 2. `SOFT_UE_BRIDGE_URL` environment variable
 3. `SOFT_UE_BRIDGE_PORT` environment variable (constructs `http://127.0.0.1:<port>`)
-4. `.soft-ue-bridge/instance.json` file (searched upward from the current working directory -- written automatically by the plugin at startup)
+4. `.soft-ue-bridge/instance.json` file (searched upward from the target project path when available, otherwise from the current working directory -- written automatically by the plugin at startup)
 5. `http://127.0.0.1:8080` (default fallback)
 
 ### Conditional Compilation for Teams

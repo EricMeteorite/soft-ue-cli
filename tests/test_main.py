@@ -21,6 +21,7 @@ from soft_ue_cli.__main__ import (
     cmd_list_scripts,
     cmd_run_python_script,
     cmd_save_script,
+    cmd_check_setup,
     cmd_setup,
 )
 
@@ -205,6 +206,41 @@ def test_load_json_file_accepts_utf8_bom(tmp_path):
     path.write_text('{"Plugins": [{"Name": "SoftUEBridge", "Enabled": true}]}', encoding="utf-8-sig")
     data = _load_json_file(path)
     assert data["Plugins"][0]["Name"] == "SoftUEBridge"
+
+
+def test_cmd_check_setup_uses_project_path_for_bridge_lookup(tmp_path, capsys, monkeypatch):
+    (tmp_path / "Plugins" / "SoftUEBridge").mkdir(parents=True)
+    (tmp_path / "Plugins" / "SoftUEBridge" / "SoftUEBridge.uplugin").write_text("{}")
+    (tmp_path / "Game.uproject").write_text('{"Plugins": [{"Name": "SoftUEBridge", "Enabled": true}]}')
+
+    other_dir = tmp_path / "elsewhere"
+    other_dir.mkdir()
+    monkeypatch.chdir(other_dir)
+
+    parser = build_parser()
+    args = parser.parse_args(["check-setup", str(tmp_path)])
+
+    seen: dict[str, object] = {}
+
+    def fake_health_check(search_from=None):
+        seen["health_check"] = search_from
+        return {"error": "connection refused"}
+
+    def fake_get_server_url(search_from=None):
+        seen["get_server_url"] = search_from
+        return "http://127.0.0.1:8080"
+
+    monkeypatch.setattr("soft_ue_cli.__main__.health_check", fake_health_check)
+    monkeypatch.setattr("soft_ue_cli.__main__.get_server_url", fake_get_server_url)
+
+    with pytest.raises(SystemExit) as exc:
+        cmd_check_setup(args)
+
+    assert exc.value.code == 1
+    assert seen["health_check"] == tmp_path.resolve()
+    assert seen["get_server_url"] == tmp_path.resolve()
+    out = capsys.readouterr().out
+    assert "Bridge server unreachable at http://127.0.0.1:8080" in out
 
 
 # -- script management (save / list / delete / run --name) ---------------------
