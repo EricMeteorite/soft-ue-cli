@@ -35,6 +35,11 @@ def _parse_json_arg(value: str, flag: str) -> object:
         sys.exit(1)
 
 
+def _load_json_file(path: Path) -> object:
+    """Load a JSON file, tolerating UTF-8 BOM when present."""
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
 # -- Command handlers ----------------------------------------------------------
 
 
@@ -1017,7 +1022,7 @@ def cmd_check_setup(args: argparse.Namespace) -> None:
             print(f"[WARN] Multiple .uproject files found; using {uproject_files[0].name}.")
         uproject_path = uproject_files[0]
         try:
-            data = json.loads(uproject_path.read_text(encoding="utf-8"))
+            data = _load_json_file(uproject_path)
             plugins = data.get("Plugins", [])
             enabled = any(p.get("Name") == "SoftUEBridge" and p.get("Enabled", False) for p in plugins)
             if enabled:

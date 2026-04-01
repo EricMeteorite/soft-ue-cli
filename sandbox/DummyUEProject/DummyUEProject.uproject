@@ -1,0 +1,9 @@
+﻿{
+    "FileVersion":  3,
+    "EngineAssociation":  "5.6",
+    "Category":  "Sandbox",
+    "Description":  "Temporary sandbox project for validating soft-ue-cli project-local install scripts.",
+    "Plugins":  [
+
+                ]
+}

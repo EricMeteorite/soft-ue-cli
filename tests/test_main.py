@@ -11,6 +11,7 @@ import pytest
 from soft_ue_cli.__main__ import (
     _SCRIPTS_DIR,
     _claude_md_section,
+    _load_json_file,
     _parse_vector,
     _validate_script_name,
     build_parser,
@@ -197,6 +198,13 @@ def test_cmd_setup_contains_plugin_src(tmp_path, capsys, monkeypatch):
     cmd_setup(args)
     out = capsys.readouterr().out
     assert "/custom/plugin" in out or "custom" in out
+
+
+def test_load_json_file_accepts_utf8_bom(tmp_path):
+    path = tmp_path / "Game.uproject"
+    path.write_text('{"Plugins": [{"Name": "SoftUEBridge", "Enabled": true}]}', encoding="utf-8-sig")
+    data = _load_json_file(path)
+    assert data["Plugins"][0]["Name"] == "SoftUEBridge"
 
 
 # -- script management (save / list / delete / run --name) ---------------------
